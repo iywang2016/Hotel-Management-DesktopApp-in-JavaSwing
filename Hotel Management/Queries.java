@@ -7,6 +7,7 @@ import javax.swing.table.JTableHeader;
 import javax.swing.border.Border;
 import java.util. Calendar;
 import java.text.SimpleDateFormat;
+import org.checkerframework.checker.sqltainting.qual.*;
 
 import static java.lang.System.*;
 
@@ -623,10 +624,10 @@ public class Queries{
 
         jp.add(btn1);
         btn1.addActionListener(e -> {
-            String name = text1.getText();
-            String check_in = text2.getText();
-            String check_out = text3.getText();
-            String room = text4.getText();
+            @SqlUnsanitized String name = text1.getText();
+            @SqlUnsanitized String check_in = text2.getText();
+            @SqlUnsanitized String check_out = text3.getText();
+            @SqlUnsanitized String room = text4.getText();
             String amount = "";
             String status = "";
             if(name.isBlank() || check_in.isBlank() || check_out.isBlank() || room.isBlank()){
@@ -638,7 +639,8 @@ public class Queries{
                     Class.forName("com.mysql.cj.jdbc.Driver");
                     Connection conn = DriverManager.getConnection("jdbc:mysql://localhost/hotel_management", "root", "");
                     Statement smt = conn.createStatement();
-                    ResultSet res = smt.executeQuery("select * from room_status where room_no = "+room+"");
+                    @SqlSanitized String queryCmd = "select * from room_status where room_no = ";
+                    ResultSet res = smt.executeQuery(queryCmd+room+"");
                     while(res.next()){
                         amount = res.getString(2);
                         status = res.getString(3);
@@ -762,7 +764,8 @@ public class Queries{
                     Class.forName("com.mysql.cj.jdbc.Driver");
                     Connection conn = DriverManager.getConnection("jdbc:mysql://localhost/hotel_management", "root", "");
                     Statement smt = conn.createStatement();
-                    ResultSet res = smt.executeQuery("select * from room_status where room_no = "+room+"");
+                    @SqlSanitized String queryCmd = "select * from room_status where room_no = ";
+                    ResultSet res = smt.executeQuery(queryCmd+room+"");
                     while(res.next()){
                         amount = res.getString(2);
                         status = res.getString(3);
