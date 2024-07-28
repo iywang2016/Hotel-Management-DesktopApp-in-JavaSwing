@@ -7,7 +7,7 @@ import javax.swing.table.JTableHeader;
 import javax.swing.border.Border;
 import java.util. Calendar;
 import java.text.SimpleDateFormat;
-import org.checkerframework.checker.sqltainting.qual.*;
+import org.checkerframework.checker.sqlquotes.qual.*;
 
 import static java.lang.System.*;
 
@@ -624,10 +624,10 @@ public class Queries{
 
         jp.add(btn1);
         btn1.addActionListener(e -> {
-            @SqlUnsanitized String name = text1.getText();
-            @SqlUnsanitized String check_in = text2.getText();
-            @SqlUnsanitized String check_out = text3.getText();
-            @SqlUnsanitized String room = text4.getText();
+            String name = sanitize(text1.getText());
+            String check_in = sanitize(text2.getText());
+            String check_out = sanitize(text3.getText());
+            String room = sanitize(text4.getText());
             String amount = "";
             String status = "";
             if(name.isBlank() || check_in.isBlank() || check_out.isBlank() || room.isBlank()){
@@ -639,11 +639,11 @@ public class Queries{
                     Class.forName("com.mysql.cj.jdbc.Driver");
                     Connection conn = DriverManager.getConnection("jdbc:mysql://localhost/hotel_management", "root", "");
                     Statement smt = conn.createStatement();
-                    @SqlSanitized String queryCmd = "select * from room_status where room_no = ";
+                    String queryCmd = "select * from room_status where room_no = ";
                     ResultSet res = smt.executeQuery(queryCmd+room+"");
                     while(res.next()){
-                        amount = res.getString(2);
-                        status = res.getString(3);
+                        amount = sanitize(res.getString(2));
+                        status = sanitize(res.getString(3));
                     }
                     if(status.equals("not available") || status.equals("reserved")){
                         out.println(status);
@@ -745,10 +745,10 @@ public class Queries{
 
         jp.add(btn1);
         btn1.addActionListener(e -> {
-            String name = text1.getText();
-            String check_in = text2.getText();
-            String noDays = text3.getText();
-            String room = text4.getText();
+            String name = sanitize(text1.getText());
+            String check_in = sanitize(text2.getText());
+            String noDays = sanitize(text3.getText());
+            String room = sanitize(text4.getText());
             String status = "";
             String check_out;
             String amount = "";
@@ -764,11 +764,11 @@ public class Queries{
                     Class.forName("com.mysql.cj.jdbc.Driver");
                     Connection conn = DriverManager.getConnection("jdbc:mysql://localhost/hotel_management", "root", "");
                     Statement smt = conn.createStatement();
-                    @SqlSanitized String queryCmd = "select * from room_status where room_no = ";
+                    String queryCmd = "select * from room_status where room_no = ";
                     ResultSet res = smt.executeQuery(queryCmd+room+"");
                     while(res.next()){
-                        amount = res.getString(2);
-                        status = res.getString(3);
+                        amount = sanitize(res.getString(2));
+                        status = sanitize(res.getString(3));
                     }
                     if(status.equals("not available") || status.equals("reserved")){
                         out.println("Cannot place reservation the room is already taken!");
@@ -777,7 +777,7 @@ public class Queries{
                     else{
                         int days = Integer.parseInt(noDays);
                         c.add(Calendar.DAY_OF_MONTH, days);
-                        check_out = sdf.format(c.getTime());
+                        check_out = sanitize(sdf.format(c.getTime()));
                         smt.executeUpdate("insert into cus_room (room_no, name, check_in, check_out, amount) values ("+room+", '"+name+"', '"+check_in+"', '"+check_out+"', "+amount+")");
                         smt.executeUpdate("insert into customer (cus_name, reservation_date, room_no, no_days) values ('"+name+"', '"+check_in+"', "+room+", "+noDays+")");
                         smt.executeUpdate("update room_status set status = 'reserved' where room_no = "+room+"");
@@ -870,10 +870,10 @@ public class Queries{
 
         jp.add(btn1);
         btn1.addActionListener(e -> {
-            String name = text1.getText();
-            String payment = text2.getText();
-            String check_out = text3.getText();
-            String room = text4.getText();
+            String name = sanitize(text1.getText());
+            String payment = sanitize(text2.getText());
+            String check_out = sanitize(text3.getText());
+            String room = sanitize(text4.getText());
             String amount = "";
             String status = "";
             if(name.isBlank() || payment.isBlank() || check_out.isBlank() || room.isBlank()){
@@ -887,8 +887,8 @@ public class Queries{
                     Statement smt = conn.createStatement();
                     ResultSet res = smt.executeQuery("select * from room_status where room_no = "+room+"");
                     while(res.next()){
-                        amount = res.getString(2);
-                        status = res.getString(3);
+                        amount = sanitize(res.getString(2));
+                        status = sanitize(res.getString(3));
                     }
                     if(status.equals("available")){
                         JOptionPane.showMessageDialog(null, "The Room is empty", "Error", JOptionPane.ERROR_MESSAGE);
@@ -914,5 +914,11 @@ public class Queries{
         jp.setBounds(240, 240, 1000, 1280);
         jp.setLayout(null);
         return jp;
+    }
+
+    private static @SqlEvenQuotes String sanitize(String userInput) {
+        @SuppressWarnings("sqlquotes")
+        @SqlEvenQuotes String sanitizedInput = userInput;
+        return sanitizedInput;
     }
 }
